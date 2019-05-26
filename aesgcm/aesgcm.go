@@ -1,6 +1,5 @@
 package aesgcm
 
-
 import (
 	"crypto/aes"
 	"crypto/cipher"
