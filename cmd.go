@@ -6,8 +6,10 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"roob.re/omemo-wget/aesgcm"
 	"strings"
@@ -15,6 +17,7 @@ import (
 
 func main() {
 	outfile := flag.String("o", "", "out file. Use '-' for stdout. Defaults to guess from input uri/path")
+	xdgopen := flag.Bool("x", false, "Open resulting file with xdg-open")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -58,6 +61,7 @@ func main() {
 	switch *outfile {
 	case "-":
 		out = os.Stdout
+		*xdgopen = false
 	case "":
 		// Generate a suitable name
 		basename := filepath.Base(path)
@@ -83,6 +87,16 @@ func main() {
 		return
 	}
 	_ = out.Close()
+
+	if *xdgopen {
+		cmd := exec.Command("xdg-open", *outfile)
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		err := cmd.Run()
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }
 
 func open(uri string) (io.ReadCloser, error) {
